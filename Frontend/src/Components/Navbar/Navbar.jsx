@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaChalkboardTeacher, FaDiscourse, FaHome } from 'react-icons/fa';
+import { FaChalkboardTeacher, FaDiscourse, FaHome, FaUser } from 'react-icons/fa';
 import { IoMdLogIn } from "react-icons/io";
 import { Link } from 'react-router-dom';
 import { MdDashboard } from "react-icons/md";
@@ -52,6 +52,12 @@ export default function Navbar() {
       icon:<FaDiscourse className="nav-icon"/>,
       path:"/course",
     },
+    {
+      id:7,
+      name:"Profile",
+      icon:<FaUser className="nav-icon"/>,
+      path:"/profile",
+    },
   ]
   const [open, setOpen] = useState(false);
 
@@ -61,12 +67,15 @@ export default function Navbar() {
   if(!isLoggedIn){
     links.splice(3, 1);
     links.splice(3, 3);
+    links.splice(3, 1);
   }
   if(isLoggedIn && role === "student"){
       links.splice(2, 2);
+
   }
   if(isLoggedIn && role === 'admin'){
       links.splice(2, 1);
+      links.splice(6, 1);
   }
   if(isLoggedIn && role === 'faculty'){
       links.splice(2, 2);

@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import {FaEye, FaEyeSlash} from "react-icons/fa";
 import {
   GraduationCap,
   User,
   Mail,
-  Lock,
   ArrowRight,
   Loader2,
 } from "lucide-react";
@@ -17,6 +17,7 @@ export default function Register() {
   const email = useRef("");
   const password = useRef("");
   const role = useRef("");
+  const [signVisible ,setSignVisible] = useState(true);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -126,14 +127,15 @@ export default function Register() {
             <div className="relative">
               <input
                 id="password"
-                type="password"
+                type={signVisible?"password":"text"}
                 placeholder="Password"
                 className="w-full pl-10 p-2 border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
                 ref={password}
                 autoComplete="current-password"
               />
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(0,0%,40%)]" />
-            </div>
+              <FaEye className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(0,0%,40%)] cursor-pointer text-2xl ${signVisible?"hidden":"visible"} `} onClick={()=>setSignVisible(!signVisible)}/>
+              <FaEyeSlash className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(0,0%,40%)] text-2xl ${signVisible?"visible":"hidden"} cursor-pointer`} onClick={()=>setSignVisible(!signVisible)}/>
+              </div>
             <div className="relative">
               <select
                 id="role"
@@ -145,7 +147,7 @@ export default function Register() {
                   Select your role
                 </option>
                 <option value="student">Student</option>
-                <option value="teacher">Faculty</option>
+                <option value="faculty">Faculty</option>
                 <option value="admin">Admin</option>
               </select>
               <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[hsl(0,0%,40%)]" />

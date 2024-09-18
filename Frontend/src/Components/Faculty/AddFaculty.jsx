@@ -3,27 +3,56 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { UserPlus, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Add axios import
 
 export default function AddFacultyPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [department, setDepartment] = useState('');
-  const [phone, setPhone] = useState('');
-  const [status, setStatus] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    department: '',
+    phoneNo: '',
+    status: ''
+  });
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Adding faculty:', { name, email, department, phone, status });
-    toast.success('Faculty member added successfully!', {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-    setTimeout(() => navigate('/faculty'), 3000);
+    try {
+      const response = await axios.post('http://localhost:1000/faculty', formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // Add token if needed
+          'Content-Type': 'application/json',
+        },
+      });
+
+      toast.success('Faculty member added successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      setTimeout(() => navigate('/faculty'), 3000);
+    } catch (error) {
+      toast.error(`Error adding faculty: ${error.response?.data?.message || error.message}`, {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
   };
 
   return (
@@ -44,9 +73,10 @@ export default function AddFacultyPage() {
             <label htmlFor="name" className="text-sm font-medium text-[hsl(0,0%,40%)]">Full Name</label>
             <input
               id="name"
+              name="name"
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={formData.name}
+              onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
               placeholder="Enter faculty member's full name"
             />
@@ -55,9 +85,10 @@ export default function AddFacultyPage() {
             <label htmlFor="email" className="text-sm font-medium text-[hsl(0,0%,40%)]">Email Address</label>
             <input
               id="email"
+              name="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
               placeholder="Enter faculty member's email address"
             />
@@ -66,25 +97,27 @@ export default function AddFacultyPage() {
             <label htmlFor="department" className="text-sm font-medium text-[hsl(0,0%,40%)]">Department</label>
             <select
               id="department"
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
             >
               <option value="" disabled>Select a department</option>
-              <option value="computer_science">Computer Science</option>
-              <option value="mathematics">Mathematics</option>
-              <option value="physics">Physics</option>
-              <option value="chemistry">Chemistry</option>
-              <option value="biology">Biology</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Physics">Physics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Biology">Biology</option>
             </select>
           </div>
           <div>
-            <label htmlFor="phone" className="text-sm font-medium text-[hsl(0,0%,40%)]">Phone Number</label>
+            <label htmlFor="phoneNo" className="text-sm font-medium text-[hsl(0,0%,40%)]">Phone Number</label>
             <input
-              id="phone"
+              id="phoneNo"
+              name="phoneNo"
               type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={formData.phoneNo}
+              onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
               placeholder="Enter faculty member's phone number"
             />
@@ -93,14 +126,15 @@ export default function AddFacultyPage() {
             <label htmlFor="status" className="text-sm font-medium text-[hsl(0,0%,40%)]">Employment Status</label>
             <select
               id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
             >
               <option value="" disabled>Select employment status</option>
-              <option value="full_time">Full-time</option>
-              <option value="part_time">Part-time</option>
-              <option value="adjunct">Adjunct</option>
+              <option value="Full-Time">Full-time</option>
+              <option value="Part-Time">Part-time</option>
+              <option value="Adjunct">Adjunct</option>
             </select>
           </div>
           <div className='flex justify-center'>

@@ -1,64 +1,23 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  UserPlus,
-  Search,
-  ChevronDown,
-  ChevronUp,
-  Mail,
-  Phone,
-  Edit,
-  Pencil,
-} from "lucide-react";
-import { useSelector } from "react-redux";
-
-const facultyData = [
-  {
-    id: 1,
-    name: "Dr. John Smith",
-    email: "john.smith@example.com",
-    department: "Computer Science",
-    phone: "+1 (555) 123-4567",
-    status: "Full-time",
-  },
-  {
-    id: 2,
-    name: "Prof. Jane Doe",
-    email: "jane.doe@example.com",
-    department: "Mathematics",
-    phone: "+1 (555) 234-5678",
-    status: "Part-time",
-  },
-  {
-    id: 3,
-    name: "Dr. Alice Johnson",
-    email: "alice.johnson@example.com",
-    department: "Physics",
-    phone: "+1 (555) 345-6789",
-    status: "Full-time",
-  },
-  {
-    id: 4,
-    name: "Prof. Bob Williams",
-    email: "bob.williams@example.com",
-    department: "Chemistry",
-    phone: "+1 (555) 456-7890",
-    status: "Adjunct",
-  },
-  {
-    id: 5,
-    name: "Dr. Charlie Brown",
-    email: "charlie.brown@example.com",
-    department: "Biology",
-    phone: "+1 (555) 567-8901",
-    status: "Full-time",
-  },
-];
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { UserPlus, Search, ChevronDown, ChevronUp, Mail, Phone, Pencil, Trash } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import ConfirmationPopup from './ConfirmationPopup'; // Adjust the import path as necessary
 
 export default function FacultyPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortColumn, setSortColumn] = useState("");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [facultyData, setFacultyData] = useState([]);
+  const [sortColumn, setSortColumn] = useState('');
+  const [sortDirection, setSortDirection] = useState('asc');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedFacultyId, setSelectedFacultyId] = useState(null);
+  const navigate = useNavigate();
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const role = useSelector((state) => state.auth.role);
 
   const filteredFaculty = facultyData.filter(
     (faculty) =>
@@ -69,38 +28,93 @@ export default function FacultyPage() {
 
   const sortedFaculty = [...filteredFaculty].sort((a, b) => {
     if (sortColumn) {
-      if (a[sortColumn] < b[sortColumn])
-        return sortDirection === "asc" ? -1 : 1;
-      if (a[sortColumn] > b[sortColumn])
-        return sortDirection === "asc" ? 1 : -1;
+      if (a[sortColumn] < b[sortColumn]) return sortDirection === 'asc' ? -1 : 1;
+      if (a[sortColumn] > b[sortColumn]) return sortDirection === 'asc' ? 1 : -1;
     }
     return 0;
   });
 
   const handleSort = (column) => {
     if (column === sortColumn) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
-      setSortDirection("asc");
+      setSortDirection('asc');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:1000/faculty/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setFacultyData(facultyData.filter((faculty) => faculty._id !== id));
+      toast.success('Faculty member deleted successfully', {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } catch (error) {
+      console.error('Error deleting faculty:', error);
+      toast.error('Failed to delete faculty', {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Full-time":
-        return "bg-green-100 text-green-800";
-      case "Part-time":
-        return "bg-blue-100 text-blue-800";
-      case "Adjunct":
-        return "bg-yellow-100 text-yellow-800";
+      case 'Full-Time':
+        return 'bg-green-100 text-green-800';
+      case 'Part-Time':
+        return 'bg-blue-100 text-blue-800';
+      case 'Adjunct':
+        return 'bg-yellow-100 text-yellow-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const isLoggedIn = useSelector((state)=>state.auth.isLoggedIn);
-  const role = useSelector((state)=>state.auth.role);
+  useEffect(() => {
+    const fetchFaculty = async () => {
+      try {
+        const response = await axios.get('http://localhost:1000/faculty', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        setFacultyData(response.data);
+      } catch (error) {
+        console.error('Error fetching faculty:', error);
+        toast.error('Failed to load faculty data', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFaculty();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-indigo-100 p-8 lg:pr-16">
@@ -110,12 +124,14 @@ export default function FacultyPage() {
             <h1 className="md:text-5xl text-4xl font-extrabold text-purple-700 lg:ml-10 my-5">
               Faculty
             </h1>
-            {role=="admin" && <Link
-              to="/faculty/add-faculty"
-              className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center gap-2"
-            >
-              <UserPlus className="mr-2 h-4 w-4 inline-block" /> Add Faculty
-            </Link>}
+            {role === "admin" && (
+              <Link
+                to="/faculty/add-faculty"
+                className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center gap-2"
+              >
+                <UserPlus className="mr-2 h-4 w-4 inline-block" /> Add Faculty
+              </Link>
+            )}
           </div>
 
           <div className="mb-4 relative">
@@ -173,13 +189,15 @@ export default function FacultyPage() {
                         <ChevronDown className="inline" />
                       ))}
                   </th>
-                  {role=="admin" && <th className="p-4 text-[hsl(0,0%,40%)]">Actions</th>}
+                  {role === "admin" && (
+                    <th className="p-4 text-[hsl(0,0%,40%)]">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {sortedFaculty.map((faculty) => (
                   <tr
-                    key={faculty.id}
+                    key={faculty._id}
                     className="hover:bg-purple-50 transition-colors text-[hsl(0,0%,50%)]"
                   >
                     <td className="p-4">{faculty.name}</td>
@@ -191,7 +209,7 @@ export default function FacultyPage() {
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
                         <Phone className="h-4 w-4 text-[hsl(0,0%,40%)]" />
-                        <span>{faculty.phone}</span>
+                        <span>{faculty.phoneNo}</span>
                       </div>
                     </td>
                     <td className="p-4">
@@ -203,11 +221,26 @@ export default function FacultyPage() {
                         {faculty.status}
                       </span>
                     </td>
-                    {role=="admin" && <td className="p-4">
-                    <button className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center">
-                        <Pencil size={16} />
-                      </button>
-                    </td>}
+
+                    {role === 'admin' && (
+                      <td className="p-4 flex gap-3">
+                        <button
+                          onClick={() => navigate(`/faculty/edit-faculty/${faculty._id}`)}
+                          className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white px-2 py-1 rounded-lg "
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedFacultyId(faculty._id);
+                            setIsPopupOpen(true);
+                          }}
+                          className="bg-gradient-to-br from-pink-300 to-pink-400 hover:from-red-500 hover:to-red-500 transition-all duration-300 transform hover:scale-105 text-white px-2 py-1 rounded-lg "
+                        >
+                          <Trash size={16} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -215,6 +248,17 @@ export default function FacultyPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmationPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        onConfirm={() => {
+          if (selectedFacultyId) {
+            handleDelete(selectedFacultyId);
+          }
+        }}
+      />
+      <ToastContainer />
     </div>
   );
 }

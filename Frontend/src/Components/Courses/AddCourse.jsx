@@ -4,6 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ArrowLeft } from "lucide-react";
 import { BsFolderPlus } from "react-icons/bs";
+import axios from 'axios'; // Add axios import
 
 // Mock departments for the dropdown
 const departments = [
@@ -24,6 +25,8 @@ export default function AddCoursePage() {
     schedule: "",
   });
 
+  const [isLoading, setIsLoading] = useState(false); // Define isLoading state
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -31,19 +34,62 @@ export default function AddCoursePage() {
     setCourse({ ...course, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Perform the actual add course logic here
-    console.log('Adding course:', course);
-    toast.success('Course added successfully!', {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-    setTimeout(() => navigate('/course'), 3000);
+
+    if (
+      course.name === '' ||
+      course.department === '' ||
+      course.code === '' ||
+      course.credits === '' ||
+      course.enrollment === '' ||
+      course.schedule === ''
+    ) {
+      toast.error('All fields are required!', {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post('http://localhost:1000/courses', course, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+
+      if (response.status === 201) {
+        toast.success('Course added successfully!', {
+          position: 'top-right',
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        setTimeout(() => navigate("/course"), 3000); // Change to "/courses"
+      } else {
+        throw new Error('Unexpected response from the server');
+      }
+    } catch (error) {
+      toast.error(`Error adding course: ${error.response?.data?.message || error.message}`, {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -52,7 +98,7 @@ export default function AddCoursePage() {
       <div className="w-full max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => navigate("/course")}
+            onClick={() => navigate("/course")} // Change to "/courses"
             className="text-purple-600 hover:text-purple-800 transition-colors flex items-center font-medium"
           >
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Courses
@@ -109,7 +155,7 @@ export default function AddCoursePage() {
               value={course.credits}
               onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
-              placeholder="Enter faculty member's full name"
+              placeholder="Enter Credits"
             />
           </div>
           <div className="flex flex-col">
@@ -121,7 +167,7 @@ export default function AddCoursePage() {
               value={course.enrollment}
               onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
-              placeholder="Enter faculty member's full name"
+              placeholder="Enter Enrollment"
             />
           </div>
           <div className="flex flex-col">
@@ -133,18 +179,18 @@ export default function AddCoursePage() {
               value={course.schedule}
               onChange={handleChange}
               className="mt-1 p-2 block w-full border border-gray-300 rounded-lg border-2 border-[text-[hsl(0,0%,40%)]] rounded-[30px] outline-none focus:border-[hsl(271,76%,53%)] text-[hsl(0,0%,40%)]"
-              placeholder="Enter faculty member's full name"
+              placeholder="Enter Schedule"
             />
           </div>
           <div className='flex justify-center'>
             <button
               type="submit"
               className="w-[75%] my-2 bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center justify-center"
+              disabled={isLoading} // Disable button when loading
             >
               <BsFolderPlus className="mr-2 h-4 w-4" /> Add Course
             </button>
           </div>
-          
         </form>
       </div>
     </div>

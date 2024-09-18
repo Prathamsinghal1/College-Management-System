@@ -13,9 +13,13 @@ import StudentPage from "./Components/Students/StudentPage";
 import FacultyPage from "./Components/Faculty/FacultyPage";
 import CoursePage from "./Components/Courses/CoursePage";
 import Register from "./Components/Register/Register";
+import Profile from "./Components/Profile/Profile";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { authActions } from './Components/store/auth';
+import EditCourse from "./Components/Courses/EditCourse";
+import EditFaculty from "./Components/Faculty/EditFaculty";
+import EditStudent from "./Components/Students/EditStudent";
 
 function App() {
   const dispatch = useDispatch();
@@ -43,16 +47,21 @@ function App() {
           <Route path="/student" element={<Student />}>
             <Route index element={<StudentPage />} />
             <Route path="/student/add-student" element={<AddStudent />} />
+            <Route path="/student/edit-student/:id" element={<EditStudent />} />
           </Route>
           <Route path="/faculty" element={<Faculty />}>
             <Route index element={<FacultyPage />} />
             <Route path="/faculty/add-faculty" element={<AddFaculty />} />
+            <Route path="/faculty/edit-faculty/:id" element={<EditFaculty />} />
           </Route>
           <Route path="/course" element={<Course />}>
             <Route index element={<CoursePage />} />
             <Route path="/course/add-course" element={<AddCourse />} />
+            <Route path='/course/edit-course/:id' element={<EditCourse/>}/>
           </Route>
+          <Route path="/profile" element={<Profile />}/>
         </Routes>
+        
 
     </>
   );

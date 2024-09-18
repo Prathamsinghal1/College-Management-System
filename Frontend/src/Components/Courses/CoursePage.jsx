@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   PlusCircle,
@@ -8,57 +8,13 @@ import {
   Pencil,
   ChevronUp,
   ChevronDown,
+  Trash,
 } from "lucide-react";
 import { useSelector } from "react-redux";
-
-// Mock data for courses
-const coursesData = [
-  {
-    id: 1,
-    code: "CS101",
-    name: "Introduction to Computer Science",
-    department: "Computer Science",
-    credits: 3,
-    enrollment: 120,
-    schedule: "MWF 10:00-11:00",
-  },
-  {
-    id: 2,
-    code: "MATH201",
-    name: "Calculus II",
-    department: "Mathematics",
-    credits: 4,
-    enrollment: 80,
-    schedule: "TTH 13:00-15:00",
-  },
-  {
-    id: 3,
-    code: "PHYS101",
-    name: "Physics for Scientists and Engineers",
-    department: "Physics",
-    credits: 4,
-    enrollment: 100,
-    schedule: "MWF 09:00-10:30",
-  },
-  {
-    id: 4,
-    code: "CHEM110",
-    name: "General Chemistry",
-    department: "Chemistry",
-    credits: 3,
-    enrollment: 90,
-    schedule: "TTH 10:00-11:30",
-  },
-  {
-    id: 5,
-    code: "BIO150",
-    name: "Introduction to Biology",
-    department: "Biology",
-    credits: 3,
-    enrollment: 110,
-    schedule: "MWF 14:00-15:00",
-  },
-];
+import axios from "axios"; // Import axios
+import { toast, ToastContainer } from "react-toastify"; // Import toast and ToastContainer
+import "react-toastify/dist/ReactToastify.css"; // Import CSS for toast
+import ConfirmationPopup from "./ConfirmationPopup"; // Ensure you have this component
 
 const sortOptions = {
   NONE: "none",
@@ -72,9 +28,39 @@ export default function CoursesPage() {
     key: "code",
     direction: sortOptions.NONE,
   });
-  const navigate = useNavigate();
+  const [coursesData, setCourses] = useState([]);
+  const [error, setError] = useState(""); // Define error state
+  const [isLoading, setIsLoading] = useState(true); // Define isLoading state
+  const [isPopupOpen, setIsPopupOpen] = useState(false); // State for handling popup
+  const [selectedCourseId, setSelectedCourseId] = useState(null); // Selected course ID
 
-  // Function to handle sorting
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get("http://localhost:1000/courses", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setCourses(response.data);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+        toast.error("Failed to load courses", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
   const sortedCourses = () => {
     let sortableCourses = [...coursesData];
     if (sortConfig.direction !== sortOptions.NONE) {
@@ -91,7 +77,54 @@ export default function CoursesPage() {
     return sortableCourses;
   };
 
-  // Function to handle column header click for sorting
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `http://localhost:1000/courses/${selectedCourseId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 204) {
+        // Remove deleted course from state
+        setCourses((prevCourses) =>
+          prevCourses.filter((course) => course._id !== selectedCourseId)
+        );
+
+        toast.success("Course deleted successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        throw new Error("Unexpected response from the server");
+      }
+    } catch (error) {
+      toast.error(
+        `Error deleting course: ${
+          error.response?.data?.message || error.message
+        }`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
+    } finally {
+      setIsLoading(false);
+      setIsPopupOpen(false); // Close the popup after deletion
+    }
+  };
+
   const requestSort = (key) => {
     let direction = sortOptions.ASC;
     if (sortConfig.key === key && sortConfig.direction === sortOptions.ASC) {
@@ -107,21 +140,27 @@ export default function CoursesPage() {
       course.department.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isLoggedIn = useSelector((state)=>state.auth.isLoggedIn);
-  const role = useSelector((state)=>state.auth.role);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const role = useSelector((state) => state.auth.role);
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-indigo-100 p-8 lg:pr-16">
+      <ToastContainer /> {/* Add ToastContainer here */}
       <div className="lg:mr-16">
         <div className="w-full max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
           <div className="flex md:flex-row flex-col items-center justify-between mb-4">
-            <h1 className="lg:text-5xl text-4xl font-extrabold text-purple-700 lg:ml-10 my-5">Courses</h1>
-            {role !== "student" && <Link
-              to="/course/add-course"
-              className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center"
-            >
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Course
-            </Link>}
+            <h1 className="lg:text-5xl text-4xl font-extrabold text-purple-700 lg:ml-10 my-5">
+              {role === "student" ? "Your Courses" : "Courses"}
+            </h1>
+            {role !== "student" && (
+              <Link
+                to="/course/add-course"
+                className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center"
+              >
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Course
+              </Link>
+            )}
           </div>
           <div className="mb-4 relative">
             <input
@@ -181,7 +220,7 @@ export default function CoursesPage() {
                     onClick={() => requestSort("credits")}
                     className="cursor-pointer hover:bg-purple-50 p-4 text-[hsl(0,0%,40%)] text-center"
                   >
-                    Credits
+                                        Credits
                     {sortConfig.key === "credits" &&
                       (sortConfig.direction === sortOptions.ASC ? (
                         <ChevronUp className="ml-2 h-4 w-4 text-purple-600 inline" />
@@ -213,13 +252,15 @@ export default function CoursesPage() {
                         <ChevronDown className="ml-2 h-4 w-4 text-purple-600 inline" />
                       ))}
                   </th>
-                  {role !== "student" && <th className="p-4 text-[hsl(0,0%,40%)] text-right">Actions</th>}
+                  {role !== "student" && (
+                    <th className="p-4 text-[hsl(0,0%,40%)] text-right">Actions</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {filteredCourses.map((course) => (
                   <tr
-                    key={course.id}
+                    key={course._id}
                     className="hover:bg-purple-50 transition-colors text-hsl(0,0%,50%)"
                   >
                     <td className="p-4 font-medium">{course.code}</td>
@@ -237,11 +278,27 @@ export default function CoursesPage() {
                       </div>
                     </td>
                     <td className="p-4">{course.schedule}</td>
-                    {role !== "student" && <td className="p-4 text-right">
-                      <button className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center">
-                        <Pencil size={16} />
-                      </button>
-                    </td>}
+                    
+                    {role !== "student" && (
+                      <td className="p-4 flex gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedCourseId(course._id);
+                            setIsPopupOpen(true);
+                          }}
+                          className="bg-gradient-to-br from-pink-300 to-pink-400 hover:from-red-500 hover:to-red-500 transition-all duration-300 transform hover:scale-105 text-white px-2 py-1 rounded-lg"
+                        >
+                          <Trash size={16} />
+                        </button>
+
+                        <button
+                          onClick={() => navigate(`/course/edit-course/${course._id}`)}
+                          className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white px-2 py-1 rounded-lg"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -249,6 +306,14 @@ export default function CoursesPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Popup for Deletion */}
+      <ConfirmationPopup
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
+

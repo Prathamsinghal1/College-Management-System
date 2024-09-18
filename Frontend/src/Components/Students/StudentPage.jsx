@@ -1,28 +1,22 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Search, ChevronDown, ChevronUp, Trash, Pencil } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
-
-// Mock data for students
-const studentsData = [
-  { id: 1, name: "John Doe", email: "john@example.com", course: "Computer Science", year: 2 },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", course: "Mathematics", year: 3 },
-  { id: 3, name: "Alice Johnson", email: "alice@example.com", course: "Physics", year: 1 },
-  { id: 4, name: "Bob Williams", email: "bob@example.com", course: "Chemistry", year: 4 },
-  { id: 5, name: "Charlie Brown", email: "charlie@example.com", course: "Biology", year: 2 },
-];
+import ConfirmDeleteModal from './ConfirmDeleteModal'; // Import the modal component
 
 export default function StudentPage() {
-  const [students, setStudents] = useState(studentsData);
+  const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [deleteId, setDeleteId] = useState(null); // Track which student to delete
+  const [isModalOpen, setIsModalOpen] = useState(false); // Track modal visibility
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -36,14 +30,7 @@ export default function StudentPage() {
       } catch (error) {
         console.error('Error fetching students:', error);
         setError('Error fetching students');
-        toast.error('Failed to load students', {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.error('Failed to load students');
       } finally {
         setIsLoading(false);
       }
@@ -52,10 +39,25 @@ export default function StudentPage() {
     fetchStudents();
   }, []);
 
-
-  const handleDelete = (id) => {
-    const updatedStudents = students.filter(student => student.id !== id);
-    setStudents(updatedStudents);
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(`http://localhost:1000/students/${deleteId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (response.status === 200 || response.status === 204) {
+        setStudents(students.filter((student) => student._id !== deleteId));
+        toast.success("Student deleted successfully!");
+      } else {
+        throw new Error("Unexpected response from the server");
+      }
+    } catch (error) {
+      toast.error(`Error deleting student: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setIsLoading(false);
+      setIsModalOpen(false); // Close the modal after deletion
+    }
   };
 
   const filteredStudents = students.filter(student =>
@@ -81,8 +83,8 @@ export default function StudentPage() {
     }
   };
 
-  const isLoggedIn = useSelector((state)=>state.auth.isLoggedIn);
-  const role = useSelector((state)=>state.auth.role);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const role = useSelector((state) => state.auth.role);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-indigo-100 p-8 lg:pr-16">
@@ -90,7 +92,7 @@ export default function StudentPage() {
         <div className="w-full max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
           <div className="flex md:flex-row flex-col items-center justify-between mb-4">
             <h1 className="md:text-5xl text-4xl font-extrabold text-purple-700 lg:ml-10 my-5">Students</h1>
-            {role!="student" && <Link to="/student/add-student" className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center gap-2">
+            {role !== "student" && <Link to="/student/add-student" className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center gap-2">
               <UserPlus className="mr-2 h-4 w-4 inline-block" /> Add Student
             </Link>}
           </div>
@@ -123,39 +125,48 @@ export default function StudentPage() {
                     Email {sortColumn === 'email' && (sortDirection === 'asc' ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
                   </th>
                   <th
-                    onClick={() => handleSort('course')}
-                    className="cursor-pointer hover:bg-purple-50 p-4 text-[hsl(0,0%,40%)]"
+                    className="hover:bg-purple-50 p-4 text-[hsl(0,0%,40%)]"
                   >
-                    Course {sortColumn === 'course' && (sortDirection === 'asc' ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
+                    Courses 
                   </th>
                   <th
-                    onClick={() => handleSort('year')}
+                    onClick={() => handleSort('yearOfStudy')}
                     className="cursor-pointer hover:bg-purple-50 p-4 text-[hsl(0,0%,40%)]"
                   >
-                    Year {sortColumn === 'year' && (sortDirection === 'asc' ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
+                    Year {sortColumn === 'yearOfStudy' && (sortDirection === 'asc' ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />)}
                   </th>
-                  {role!="student" && <th className="p-4 text-[hsl(0,0%,40%)]">Actions</th>}
+                  {role !== "student" && <th className="p-4 text-[hsl(0,0%,40%)]">Actions</th>}
                 </tr>
               </thead>
               <tbody>
-                {sortedStudents.map((student,index) => (
-                  <tr key={index} className="cursor-pointer hover:bg-purple-50 transition-colors text-[hsl(0,0%,50%)]">
+                {sortedStudents.map((student) => (
+                  <tr key={student._id} className="cursor-pointer hover:bg-purple-50 transition-colors text-[hsl(0,0%,50%)]">
                     <td className="p-4">{student.name}</td>
                     <td className="p-4">{student.email}</td>
-                    <td className="p-4">{student.course}</td>
-                    <td className="p-4">{student.year}</td>
-                    {role!="student" && <td className="p-4 flex gap-5">
+                    <td className="p-4 border-b">
+                      {student.courses.map((course,index) => (
+                        <div key={index}>{index+1}. {course.name}</div> // Display course name
+                      ))}
+                    </td>
+                    <td className="p-4">{student.yearOfStudy}</td>
+                    {role !== "student" && <td className="p-4 flex gap-3">
                       <button
-                        onClick={() => handleDelete(student.id)}
-                        className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-orange-400 hover:to-red-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center"
+                        onClick={() => {
+                          setDeleteId(student._id);
+                          setIsModalOpen(true);
+                        }}
+                        className="bg-gradient-to-br from-pink-300 to-pink-400 hover:from-red-500 hover:to-red-500 transition-all duration-300 transform hover:scale-105 text-white px-2 py-1 rounded-lg"
                       >
-                        <Trash className="inline-block h-4 w-4" />
+                        <Trash size={18} />
                       </button>
                       <button
-                        className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white py-2 px-4 rounded-[30px] flex items-center"
+                        onClick={() => navigate(`/student/edit-student/${student._id}`)}
+                        className="bg-gradient-to-br from-purple-300 to-indigo-300 hover:from-purple-400 hover:to-indigo-400 transition-all duration-300 transform hover:scale-105 text-white px-2 py-1 rounded-lg"
                       >
-                        <Pencil className="inline-block h-4 w-4" />
-                      </button>
+
+                          <Pencil size={16} />
+                        </button>
+
                     </td>}
                   </tr>
                 ))}
@@ -164,6 +175,13 @@ export default function StudentPage() {
           </div>
         </div>
       </div>
+      <ConfirmDeleteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleDelete}
+      />
+      
+      <ToastContainer />
     </div>
   );
 }

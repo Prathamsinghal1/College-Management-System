@@ -1,22 +1,21 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 
-dotenv.config(); // Load environment variables
+dotenv.config(); 
 
 const app = express();
 
 // Middleware
-app.use(bodyParser.json());
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow requests from this origin
+  origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Import route files
+app.use(express.json());
+
 const authRoutes = require('./routes/authRoutes');
 const studentsRoutes = require('./routes/studentsRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
@@ -40,8 +39,14 @@ mongoose.connect(mongoUri, {
 // Use Routes
 app.use('/auth', authRoutes);
 app.use('/students', studentsRoutes);
-app.use('/faculty', facultyRoutes);
+app.use('/faculty', facultyRoutes); // Ensure this line is present
 app.use('/courses', coursesRoutes);
+
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
 
 // Start the Server
 const PORT = process.env.PORT || 3000;
