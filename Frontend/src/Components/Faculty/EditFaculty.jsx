@@ -21,7 +21,7 @@ export default function EditFacultyPage() {
     // Fetch faculty data based on ID
     const fetchFaculty = async () => {
       try {
-        const response = await axios.get(`http://localhost:1000/faculty/${id}`, {
+        const response = await axios.get(`https://college-management-backend-4zro.onrender.com/faculty/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -55,7 +55,7 @@ export default function EditFacultyPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:1000/faculty/${id}`, formData, {
+      await axios.put(`https://college-management-backend-4zro.onrender.com/faculty/${id}`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',

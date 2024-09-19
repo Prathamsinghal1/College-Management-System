@@ -44,7 +44,7 @@ export default function Register() {
 
     try {
       // Make an API request to the backend to register the user
-      const response = await axios.post("http://localhost:1000/auth/register", {
+      const response = await axios.post("https://college-management-backend-4zro.onrender.com/auth/register", {
         name: name.current.value,
         email: email.current.value,
         password: password.current.value,

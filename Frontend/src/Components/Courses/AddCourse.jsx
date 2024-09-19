@@ -59,7 +59,7 @@ export default function AddCoursePage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:1000/courses', course, {
+      const response = await axios.post('https://college-management-backend-4zro.onrender.com/courses', course, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         }

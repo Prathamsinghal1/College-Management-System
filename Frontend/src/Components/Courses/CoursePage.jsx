@@ -37,7 +37,7 @@ export default function CoursesPage() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("http://localhost:1000/courses", {
+        const response = await axios.get("https://college-management-backend-4zro.onrender.com/courses", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -80,7 +80,7 @@ export default function CoursesPage() {
   const handleDelete = async () => {
     try {
       const response = await axios.delete(
-        `http://localhost:1000/courses/${selectedCourseId}`,
+        `https://college-management-backend-4zro.onrender.com/courses/${selectedCourseId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

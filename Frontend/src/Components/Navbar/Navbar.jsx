@@ -75,7 +75,6 @@ export default function Navbar() {
   }
   if(isLoggedIn && role === 'admin'){
       links.splice(2, 1);
-      links.splice(6, 1);
   }
   if(isLoggedIn && role === 'faculty'){
       links.splice(2, 2);

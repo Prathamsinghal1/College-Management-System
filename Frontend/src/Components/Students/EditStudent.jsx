@@ -22,7 +22,7 @@ const EditStudent = () => {
   useEffect(() => {
     const fetchStudent = async () => {
       try {
-        const response = await axios.get(`http://localhost:1000/students/${id}`, {
+        const response = await axios.get(`https://college-management-backend-4zro.onrender.com/students/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -45,7 +45,7 @@ const EditStudent = () => {
 
     const fetchCourses = async () => {
       try {
-        const response = await axios.get('http://localhost:1000/courses', {
+        const response = await axios.get('https://college-management-backend-4zro.onrender.com/courses', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -85,7 +85,7 @@ const EditStudent = () => {
       console.log("Updating student with data:", { ...formState, courses: formState.selectedCourses });
   
       await axios.put(
-        `http://localhost:1000/students/${id}`,
+        `https://college-management-backend-4zro.onrender.com/students/${id}`,
         { ...formState, courses: formState.selectedCourses },
         {
           headers: {

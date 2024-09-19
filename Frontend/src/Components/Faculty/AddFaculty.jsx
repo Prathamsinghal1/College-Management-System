@@ -26,7 +26,7 @@ export default function AddFacultyPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:1000/faculty', formData, {
+      const response = await axios.post('https://college-management-backend-4zro.onrender.com/faculty', formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`, // Add token if needed
           'Content-Type': 'application/json',

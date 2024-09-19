@@ -23,7 +23,7 @@ export default function EditCourse() {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await axios.get(`http://localhost:1000/courses/${id}`, {
+        const response = await axios.get(`https://college-management-backend-4zro.onrender.com/courses/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -56,7 +56,7 @@ export default function EditCourse() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:1000/courses/${id}`, course, {
+      await axios.put(`https://college-management-backend-4zro.onrender.com/courses/${id}`, course, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },

@@ -17,7 +17,7 @@ export default function AddStudent() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const response = await axios.get("http://localhost:1000/courses", {
+        const response = await axios.get("https://college-management-backend-4zro.onrender.com/courses", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -74,7 +74,7 @@ export default function AddStudent() {
     setIsLoading(true);
   
     try {
-      const response = await axios.post('http://localhost:1000/students/add', {
+      const response = await axios.post('https://college-management-backend-4zro.onrender.com/students/add', {
         name: name.current.value,
         email: email.current.value,
         courses: selectedCourses,

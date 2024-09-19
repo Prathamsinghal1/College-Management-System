@@ -21,7 +21,7 @@ export default function StudentPage() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const response = await axios.get('http://localhost:1000/students', {
+        const response = await axios.get('https://college-management-backend-4zro.onrender.com/students', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
@@ -41,7 +41,7 @@ export default function StudentPage() {
 
   const handleDelete = async () => {
     try {
-      const response = await axios.delete(`http://localhost:1000/students/${deleteId}`, {
+      const response = await axios.delete(`https://college-management-backend-4zro.onrender.com/students/${deleteId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },

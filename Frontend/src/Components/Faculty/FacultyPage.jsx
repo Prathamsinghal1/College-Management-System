@@ -45,7 +45,7 @@ export default function FacultyPage() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:1000/faculty/${id}`, {
+      await axios.delete(`https://college-management-backend-4zro.onrender.com/faculty/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -88,7 +88,7 @@ export default function FacultyPage() {
   useEffect(() => {
     const fetchFaculty = async () => {
       try {
-        const response = await axios.get('http://localhost:1000/faculty', {
+        const response = await axios.get('https://college-management-backend-4zro.onrender.com/faculty', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
