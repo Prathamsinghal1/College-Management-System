@@ -25,14 +25,11 @@ const coursesRoutes = require('./routes/coursesRoutes');
 const mongoUri = process.env.URI;
 
 if (!mongoUri) {
-  console.error('MONGO_URI is not defined in .env file');
+  console.error('MONGO_URI is not found');
   process.exit(1);
 }
 
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(mongoUri)
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
