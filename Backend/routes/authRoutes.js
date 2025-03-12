@@ -6,11 +6,28 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { authenticateToken, checkAdminRole } = require('../middleware/authMiddleware');
 
+// Helper function to validate email format
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+// Helper function to validate phone number format (basic example for 10 digits)
+const isValidPhoneNumber = (phoneNumber) => /^\d{10}$/.test(phoneNumber);
+
 // Register
 router.post('/register', async (req, res) => {
   const { name, email, phoneNumber, password, occupation, role } = req.body;
 
   try {
+    // Validate required fields
+    if (!email || !phoneNumber) {
+      return res.status(400).json({ message: 'Email and Phone Number are required!' });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format!' });
+    }
+    if (!isValidPhoneNumber(phoneNumber)) {
+      return res.status(400).json({ message: 'Invalid phone number format!' });
+    }
+
     // Check if email or phone number already exists
     const existingUser = await User.findOne({
       $or: [{ email: email.toLowerCase() }, { phoneNumber: phoneNumber }],
@@ -23,7 +40,14 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new user
-    const user = new User({ name, email: email.toLowerCase(), phoneNumber, password: hashedPassword, occupation, role });
+    const user = new User({
+      name,
+      email: email.toLowerCase(),
+      phoneNumber,
+      password: hashedPassword,
+      occupation,
+      role,
+    });
     await user.save();
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error) {
@@ -33,11 +57,14 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, password } = req.body; // `identifier` can be email or phone number
 
   try {
-    // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // Find user by email or phone number
+    const user = await User.findOne({
+      $or: [{ email: identifier.toLowerCase() }, { phoneNumber: identifier }],
+    });
+
     if (!user) return res.status(401).json({ message: 'User not found' });
 
     // Compare password
