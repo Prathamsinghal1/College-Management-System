@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Course = require('../models/courseModel');
-const authenticateJWT = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/authMiddleware');
+
 
 // Add a course
-router.post('/', authenticateJWT, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
 
   const { code, name, department, credits, enrollment, schedule } = req.body;
 
@@ -18,7 +19,7 @@ router.post('/', authenticateJWT, async (req, res) => {
 });
 
 // Update a course
-router.put('/:courseId', authenticateJWT, async (req, res) => {
+router.put('/:courseId', authenticateToken, async (req, res) => {
 
   const { courseId } = req.params;
   const { code, name, department, credits, enrollment, schedule } = req.body;
@@ -42,7 +43,7 @@ router.put('/:courseId', authenticateJWT, async (req, res) => {
 });
 
 // Delete a course
-router.delete('/:courseId', authenticateJWT, async (req, res) => {
+router.delete('/:courseId', authenticateToken, async (req, res) => {
 
   const { courseId } = req.params;
 
@@ -58,7 +59,7 @@ router.delete('/:courseId', authenticateJWT, async (req, res) => {
 });
 
 // Get all courses
-router.get('/', authenticateJWT, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const courses = await Course.find();
     res.json(courses);
@@ -67,7 +68,7 @@ router.get('/', authenticateJWT, async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const courseId = req.params.id;
     const course = await Course.findById(courseId);

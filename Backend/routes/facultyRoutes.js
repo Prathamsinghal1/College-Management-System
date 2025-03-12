@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Faculty = require('../models/facultyModel');
-const authenticateJWT = require('../middleware/authMiddleware');
+const {authenticateToken} = require('../middleware/authMiddleware');
 
 // Add a faculty
-router.post('/', authenticateJWT, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
 
   const { name, email, phoneNo, department, status } = req.body;
 
@@ -23,7 +23,7 @@ router.post('/', authenticateJWT, async (req, res) => {
 });
 
 // Get all faculty
-router.get('/', authenticateJWT, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const faculty = await Faculty.find({ role: 'faculty' });
     res.json(faculty);
@@ -34,7 +34,7 @@ router.get('/', authenticateJWT, async (req, res) => {
 });
 
 
-router.delete('/:id', authenticateJWT, async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const faculty = await Faculty.findByIdAndDelete(id);
@@ -50,7 +50,7 @@ router.delete('/:id', authenticateJWT, async (req, res) => {
 });
 
 // Get Faculty by ID
-router.get('/:id', authenticateJWT, async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const faculty = await Faculty.findById(id);
@@ -66,7 +66,7 @@ router.get('/:id', authenticateJWT, async (req, res) => {
 });
 
 // Update Faculty by ID
-router.put('/:id', authenticateJWT, async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, department, phoneNo, status } = req.body;

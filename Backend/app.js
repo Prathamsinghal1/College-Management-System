@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 dotenv.config(); 
 
@@ -9,10 +10,12 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: 'https://college-management-frontend-sh8v.onrender.com',
+  origin: ['https://college-management-frontend-sh8v.onrender.com','https://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+app.use(bodyParser.json());
 
 app.use(express.json());
 
@@ -20,6 +23,7 @@ const authRoutes = require('./routes/authRoutes');
 const studentsRoutes = require('./routes/studentsRoutes');
 const facultyRoutes = require('./routes/facultyRoutes');
 const coursesRoutes = require('./routes/coursesRoutes');
+const blogRoutes = require('./routes/blogRoutes');
 
 // Connect to MongoDB
 const mongoUri = process.env.URI;
@@ -35,6 +39,7 @@ mongoose.connect(mongoUri)
 
 // Use Routes
 app.use('/auth', authRoutes);
+app.use('/blog', blogRoutes);
 app.use('/students', studentsRoutes);
 app.use('/faculty', facultyRoutes); // Ensure this line is present
 app.use('/courses', coursesRoutes);

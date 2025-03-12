@@ -3,18 +3,19 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
+  phoneNumber: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: 'student' },
+  occupation: { type: String },
+  role: { type: String, default: 'user' },
   avatar: {
     type: String,
-    default: "https://www.flaticon.com/svg/static/icons/svg/913/9131529.svg", // Example placeholder image URL
   },
-  courses: [
+  blogList: [
     {
-      type: mongoose.Types.ObjectId,
-      ref: "Course",
+      type: mongoose.Schema.Types.ObjectId, // Reference to Blog model
+      ref: 'Blog', // Name of the related model
     },
-  ]
+  ],
 }, {
   timestamps: true // This will add createdAt and updatedAt fields
 });
