@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://college-management-frontend-sh8v.onrender.com','https://localhost:5173'],
+  origin: ['https://college-management-frontend-sh8v.onrender.com','http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
